@@ -9,10 +9,10 @@ export default function Referrals() {
   const { userData } = useAuthStore();
   const [copied, setCopied] = useState(false);
 
-  const referralLink = `${window.location.origin}/signup?ref=${userData?.referralCode}`;
+  const referralCode = userData?.referralCode || '';
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(referralLink);
+    navigator.clipboard.writeText(referralCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -21,8 +21,7 @@ export default function Referrals() {
     if (navigator.share) {
       navigator.share({
         title: 'Join Earnexa',
-        text: 'Join me on Earnexa and start earning today!',
-        url: referralLink,
+        text: `Join me on Earnexa and start earning today! Use my referral code: ${referralCode}`,
       });
     }
   };
@@ -43,7 +42,7 @@ export default function Referrals() {
           <p className="text-sm text-gray-400 mb-6">You'll both get a bonus when they join!</p>
 
           <div className="bg-[#0b1120] rounded-xl p-3 flex items-center justify-between border border-white/5 mb-4 relative py-4">
-            <span className="font-mono text-emerald-400 tracking-wider text-sm truncate pl-2">{referralLink}</span>
+            <span className="font-mono text-emerald-400 font-bold tracking-widest text-lg ml-2">{referralCode}</span>
             <div className="flex items-center gap-2 absolute right-2">
               <Button size="icon" variant="glass" className="w-10 h-10 rounded-lg" onClick={handleCopy}>
                 {copied ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}
@@ -53,7 +52,7 @@ export default function Referrals() {
 
           <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/25" size="lg" onClick={handleShare}>
             <Share2 size={18} className="mr-2" />
-            Share Link
+            Share Code
           </Button>
         </Card>
       </motion.div>
