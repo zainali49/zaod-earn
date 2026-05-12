@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Globally block everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      // NOTE: In an actual secure application, "incrementing balance" shouldn't be fully trusted from the client.
+      // But since this is a frontend-facing app structure, we allow the user to create/update their own document.
+      allow create: if isOwner(userId) && incoming().uid == userId;
+      allow update: if isOwner(userId);
+    }
+
+    // transactions collection
+    match /transactions/{transactionId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Allow users to write their own transactions (in a real system, a backend Cloud Function would do this securely avoiding cheating).
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+    }
+    
+    // withdrawals collection
+    match /withdrawals/{withdrawalId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && incoming().status == 'pending';
+    }
+    
+  }
+}
